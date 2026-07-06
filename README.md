@@ -126,8 +126,6 @@ print(result.output)
 
 ## 📂 Directory Structure (폴더 구조)
 
-각자 독립된 환경에서 충돌 없이 작업할 수 있도록 아래와 같이 폴더 구조가 설계되어 있습니다.
-
 ```bash
 pydantic-ai/
 ├── plugins/              # 멤버들이 각자 폴더/파일을 파서 기여할 공간
@@ -229,7 +227,6 @@ python -m plugins.sample_package   # 패키지 예시
 
 - `plugins/`에 본인 파일·폴더만 추가/수정합니다. **`main.py`, `core/`는 건드리지 않습니다.**
 - PR 본문에 **간단 사용법**만 적어주세요:
-  - **기여자** (이름 또는 @github-id)
   - 플러그인 이름
   - 뭐 하는 플러그인인지 (1~2줄)
   - 실행 명령 (`python main.py xxx`)
