@@ -1,6 +1,12 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
+
+# rules.py의 COMPANY_ACCOUNT_RULES 키와 반드시 1:1로 맞출 것
+ExpenseCategory = Literal[
+    '카페', '식당', '택시', '숙박', '편의점', '마트', '주유소', '수리', '사무용품', '통신', '기타',
+]
 
 
 class ReceiptItem(BaseModel):
@@ -13,7 +19,7 @@ class ReceiptItem(BaseModel):
 class Receipt(BaseModel):
     merchant: str
     purchased_at: datetime
-    category: str = Field(description='가맹점 업종 한 단어 분류 (예: 카페, 식당, 택시, 숙박, 편의점, 기타)')
+    category: ExpenseCategory
     items: list[ReceiptItem]
     total: int = Field(ge=0, description='원 단위 총액')
 
