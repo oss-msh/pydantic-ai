@@ -29,14 +29,17 @@ class Receipt(BaseModel):
             expected = item.quantity * item.unit_price
             if expected != item.amount:
                 raise ValueError(
-                    f'"{item.name}" 금액 오류: 수량({item.quantity}) * 단가({item.unit_price}) '
-                    f'= {expected}원 이어야 하는데 {item.amount}원으로 기재됨. 다시 계산해서 amount를 고치세요.'
+                    f'"{item.name}" 금액 불일치: 수량({item.quantity}) * 단가({item.unit_price}) '
+                    f'= {expected}원인데 amount는 {item.amount}원으로 읽음. 수량/단가/금액 중 '
+                    '하나를 이미지에서 잘못 읽었을 가능성이 높습니다. 값을 억지로 끼워맞추지 말고, '
+                    '이미지를 다시 확인해서 실제로 인쇄된 숫자로 고치세요.'
                 )
 
         items_sum = sum(item.amount for item in self.items)
         if items_sum != self.total:
             raise ValueError(
-                f'총액 오류: 품목 금액 합계는 {items_sum}원인데 total은 {self.total}원으로 기재됨. '
-                '다시 계산해서 total을 고치세요.'
+                f'총액 불일치: 품목 금액 합계는 {items_sum}원인데 total은 {self.total}원으로 읽음. '
+                '품목 금액 또는 총액 중 하나를 이미지에서 잘못 읽었을 가능성이 높습니다. '
+                '값을 억지로 끼워맞추지 말고, 이미지를 다시 확인해서 실제로 인쇄된 숫자로 고치세요.'
             )
         return self

@@ -26,7 +26,7 @@ def test_item_math_error_rejected():
         Receipt.model_validate(_make_receipt(items=[bad_item]))
         raise AssertionError('금액 불일치를 잡아내지 못함')
     except ValueError as e:
-        assert '금액 오류' in str(e)
+        assert '금액 불일치' in str(e)
 
 
 def test_total_math_error_rejected():
@@ -34,7 +34,7 @@ def test_total_math_error_rejected():
         Receipt.model_validate(_make_receipt(total=99999))
         raise AssertionError('총액 불일치를 잡아내지 못함')
     except ValueError as e:
-        assert '총액 오류' in str(e)
+        assert '총액 불일치' in str(e)
 
 
 def test_assign_account_code_default_and_company():
