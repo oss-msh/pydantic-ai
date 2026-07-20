@@ -16,6 +16,12 @@ class ReceiptItem(BaseModel):
     amount: int = Field(ge=0, description='원 단위 금액 (quantity * unit_price)')
 
 
+class UnreadableReceipt(BaseModel):
+    """영수증이 아니거나 너무 흐려서 읽을 수 없을 때"""
+
+    reason: str = Field(description='왜 못 읽었는지 (예: 영수증이 아님, 너무 흐림, 잘림)')
+
+
 class Receipt(BaseModel):
     merchant: str
     purchased_at: datetime

@@ -1,6 +1,10 @@
-"""LLM 호출 없이 순수 로직(금액 검증, 계정과목 매핑)만 확인하는 self-check"""
+"""실제 LLM 호출 없이(FunctionModel로 가짜 응답) 검증/재시도/분기 로직을 확인하는 self-check"""
 
-from .models import ExpenseCategory, Receipt
+from pydantic_ai import Agent
+from pydantic_ai.messages import ModelResponse, ToolCallPart
+from pydantic_ai.models.function import FunctionModel
+
+from .models import ExpenseCategory, Receipt, UnreadableReceipt
 from .rules import COMPANY_ACCOUNT_RULES, assign_account_code, missing_categories
 
 
@@ -67,6 +71,34 @@ def test_repair_category_maps_correctly():
     assert assign_account_code(receipt, company='default') == '수선비'
 
 
+def test_agent_retries_after_bad_math_then_succeeds():
+    call_count = {'n': 0}
+    bad = _make_receipt(items=[{'name': '물', 'quantity': 2, 'unit_price': 1000, 'amount': 1000}], total=1000)
+    good = _make_receipt(items=[{'name': '물', 'quantity': 2, 'unit_price': 1000, 'amount': 2000}], total=2000)
+
+    def fake_model(messages, info):
+        call_count['n'] += 1
+        data = bad if call_count['n'] == 1 else good
+        return ModelResponse(parts=[ToolCallPart(tool_name='final_result_Receipt', args=data)])
+
+    agent = Agent(FunctionModel(fake_model), output_type=[Receipt, UnreadableReceipt], retries={'output': 2})
+    result = agent.run_sync('영수증 읽어줘')
+    assert call_count['n'] == 2, '검증 실패 후 재시도가 안 일어남'
+    assert result.output.total == 2000
+
+
+def test_agent_returns_unreadable_instead_of_hallucinating():
+    def fake_model(messages, info):
+        return ModelResponse(parts=[ToolCallPart(
+            tool_name='final_result_UnreadableReceipt', args={'reason': '영수증이 아님'},
+        )])
+
+    agent = Agent(FunctionModel(fake_model), output_type=[Receipt, UnreadableReceipt], retries={'output': 2})
+    result = agent.run_sync('이거 분석해줘')
+    assert isinstance(result.output, UnreadableReceipt)
+    assert result.output.reason == '영수증이 아님'
+
+
 if __name__ == '__main__':
     test_valid_receipt_passes()
     test_item_math_error_rejected()
@@ -75,4 +107,6 @@ if __name__ == '__main__':
     test_category_is_fixed_enum_not_free_text()
     test_every_company_covers_all_categories()
     test_repair_category_maps_correctly()
+    test_agent_retries_after_bad_math_then_succeeds()
+    test_agent_returns_unreadable_instead_of_hallucinating()
     print('[OK] receipt_agent self-check 통과')

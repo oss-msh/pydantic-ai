@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 from core.model import resolve_model
 from plugins.receipt_agent import ReceiptAgent
+from plugins.receipt_agent.models import UnreadableReceipt
 
 
 def main() -> None:
@@ -19,7 +20,10 @@ def main() -> None:
     plugin = ReceiptAgent(model=model)
     print(f'[System] 플러그인: {plugin.get_name()} | 모델: {model}')
     result = plugin.run(image, company=company)
-    print(result.model_dump_json(indent=2))
+    if isinstance(result, UnreadableReceipt):
+        print(f'[Unreadable] {result.reason}')
+    else:
+        print(result.model_dump_json(indent=2))
 
 
 if __name__ == '__main__':
