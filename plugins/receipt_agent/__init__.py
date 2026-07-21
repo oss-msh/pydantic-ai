@@ -28,12 +28,36 @@ class ExpenseResult(BaseModel):
     account_code: str
 
 
+# Gemini/OpenAI 등 주요 vision 모델이 공통으로 받는 포맷. HEIC(아이폰 기본), PDF 등은 여기서 걸러냄
+_SUPPORTED_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
+# Gemini inline data 제한(20MB) 기준. 넘으면 리사이즈 필요
+_MAX_LOCAL_IMAGE_BYTES = 20 * 1024 * 1024
+
+
+def _check_media_type(image: str, media_type: str | None) -> None:
+    if media_type is not None and media_type not in _SUPPORTED_IMAGE_TYPES:
+        raise ValueError(
+            f'지원 안 하는 이미지 포맷: "{media_type}" ({image}). '
+            f'{", ".join(sorted(_SUPPORTED_IMAGE_TYPES))} 중 하나로 변환해서 다시 시도하세요.'
+        )
+
+
 def _to_image_content(image: str) -> ImageUrl | BinaryContent:
     if image.startswith('http://') or image.startswith('https://'):
+        _check_media_type(image, mimetypes.guess_type(image)[0])
         return ImageUrl(url=image)
-    data = Path(image).read_bytes()
+
     media_type = mimetypes.guess_type(image)[0] or 'image/jpeg'
-    return BinaryContent(data=data, media_type=media_type)
+    _check_media_type(image, media_type)
+
+    size = Path(image).stat().st_size
+    if size > _MAX_LOCAL_IMAGE_BYTES:
+        raise ValueError(
+            f'이미지 용량 초과: {size / 1024 / 1024:.1f}MB ({image}). '
+            f'{_MAX_LOCAL_IMAGE_BYTES // 1024 // 1024}MB 이하로 리사이즈해서 다시 시도하세요.'
+        )
+
+    return BinaryContent(data=Path(image).read_bytes(), media_type=media_type)
 
 
 class ReceiptAgent(BaseAgent):

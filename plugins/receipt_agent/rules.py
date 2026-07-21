@@ -35,8 +35,10 @@ COMPANY_ACCOUNT_RULES: dict[str, dict[str, str]] = {
 
 def assign_account_code(receipt: Receipt, company: str = 'default') -> str:
     """AI가 분류한 category를 회사별 정산 규정에 맞는 계정과목으로 매핑"""
-    rules = COMPANY_ACCOUNT_RULES.get(company, COMPANY_ACCOUNT_RULES['default'])
-    return rules[receipt.category]
+    if company not in COMPANY_ACCOUNT_RULES:
+        known = ', '.join(COMPANY_ACCOUNT_RULES)
+        raise ValueError(f'등록 안 된 회사: "{company}". 등록된 회사: {known}')
+    return COMPANY_ACCOUNT_RULES[company][receipt.category]
 
 
 def missing_categories(company: str) -> set[ExpenseCategory]:

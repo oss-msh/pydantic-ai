@@ -1,9 +1,13 @@
 """실제 LLM 호출 없이(FunctionModel로 가짜 응답) 검증/재시도/분기 로직을 확인하는 self-check"""
 
-from pydantic_ai import Agent
+import tempfile
+from pathlib import Path
+
+from pydantic_ai import Agent, BinaryContent
 from pydantic_ai.messages import ModelResponse, ToolCallPart
 from pydantic_ai.models.function import FunctionModel
 
+from . import _to_image_content
 from .models import ExpenseCategory, Receipt, UnreadableReceipt
 from .rules import COMPANY_ACCOUNT_RULES, assign_account_code, missing_categories
 
@@ -71,6 +75,53 @@ def test_repair_category_maps_correctly():
     assert assign_account_code(receipt, company='default') == '수선비'
 
 
+def test_assign_account_code_unknown_company_raises():
+    receipt = Receipt.model_validate(_make_receipt())
+    try:
+        assign_account_code(receipt, company='no_such_company')
+        raise AssertionError('등록 안 된 회사를 걸러내지 못함')
+    except ValueError as e:
+        assert '등록 안 된 회사' in str(e)
+
+
+def test_unsupported_image_format_rejected():
+    with tempfile.NamedTemporaryFile(suffix='.heic', delete=False) as f:
+        f.write(b'fake heic bytes')
+        path = f.name
+    try:
+        _to_image_content(path)
+        raise AssertionError('HEIC 포맷을 걸러내지 못함')
+    except ValueError as e:
+        assert '지원 안 하는 이미지 포맷' in str(e)
+    finally:
+        Path(path).unlink()
+
+
+def test_oversized_local_image_rejected():
+    with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as f:
+        f.write(b'0' * (21 * 1024 * 1024))
+        path = f.name
+    try:
+        _to_image_content(path)
+        raise AssertionError('용량 초과를 걸러내지 못함')
+    except ValueError as e:
+        assert '이미지 용량 초과' in str(e)
+    finally:
+        Path(path).unlink()
+
+
+def test_valid_local_image_passes_checks():
+    with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as f:
+        f.write(b'fake small jpg bytes')
+        path = f.name
+    try:
+        content = _to_image_content(path)
+        assert isinstance(content, BinaryContent)
+        assert content.media_type == 'image/jpeg'
+    finally:
+        Path(path).unlink()
+
+
 def test_agent_retries_after_bad_math_then_succeeds():
     call_count = {'n': 0}
     bad = _make_receipt(items=[{'name': '물', 'quantity': 2, 'unit_price': 1000, 'amount': 1000}], total=1000)
@@ -107,6 +158,10 @@ if __name__ == '__main__':
     test_category_is_fixed_enum_not_free_text()
     test_every_company_covers_all_categories()
     test_repair_category_maps_correctly()
+    test_assign_account_code_unknown_company_raises()
+    test_unsupported_image_format_rejected()
+    test_oversized_local_image_rejected()
+    test_valid_local_image_passes_checks()
     test_agent_retries_after_bad_math_then_succeeds()
     test_agent_returns_unreadable_instead_of_hallucinating()
     print('[OK] receipt_agent self-check 통과')
