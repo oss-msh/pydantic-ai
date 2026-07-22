@@ -27,6 +27,9 @@ class Receipt(BaseModel):
     purchased_at: datetime
     category: ExpenseCategory
     items: list[ReceiptItem]
+    tax: int = Field(default=0, ge=0, description='부가세 (원 단위, 없으면 0)')
+    service_charge: int = Field(default=0, ge=0, description='봉사료 (원 단위, 없으면 0)')
+    discount: int = Field(default=0, ge=0, description='할인 금액 (원 단위, 없으면 0)')
     total: int = Field(ge=0, description='원 단위 총액')
 
     @model_validator(mode='after')
@@ -41,11 +44,13 @@ class Receipt(BaseModel):
                     '이미지를 다시 확인해서 실제로 인쇄된 숫자로 고치세요.'
                 )
 
-        items_sum = sum(item.amount for item in self.items)
-        if items_sum != self.total:
+        expected_total = sum(item.amount for item in self.items) + self.tax + self.service_charge - self.discount
+        if expected_total != self.total:
             raise ValueError(
-                f'총액 불일치: 품목 금액 합계는 {items_sum}원인데 total은 {self.total}원으로 읽음. '
-                '품목 금액 또는 총액 중 하나를 이미지에서 잘못 읽었을 가능성이 높습니다. '
-                '값을 억지로 끼워맞추지 말고, 이미지를 다시 확인해서 실제로 인쇄된 숫자로 고치세요.'
+                f'총액 불일치: 품목 합계({sum(item.amount for item in self.items)}원) + 부가세'
+                f'({self.tax}원) + 봉사료({self.service_charge}원) - 할인({self.discount}원) '
+                f'= {expected_total}원인데 total은 {self.total}원으로 읽음. 품목 금액/부가세/봉사료/'
+                '할인/총액 중 하나를 이미지에서 잘못 읽었을 가능성이 높습니다. 값을 억지로 끼워맞추지 '
+                '말고, 이미지를 다시 확인해서 실제로 인쇄된 숫자로 고치세요.'
             )
         return self

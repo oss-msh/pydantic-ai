@@ -45,6 +45,24 @@ def test_total_math_error_rejected():
         assert '총액 불일치' in str(e)
 
 
+def test_total_with_tax_and_service_charge_passes():
+    Receipt.model_validate(_make_receipt(
+        items=[{'name': '한상차림', 'quantity': 1, 'unit_price': 12727, 'amount': 12727}],
+        category='식당', tax=1273, service_charge=0, discount=0, total=14000,
+    ))
+
+
+def test_total_ignoring_tax_is_rejected():
+    try:
+        Receipt.model_validate(_make_receipt(
+            items=[{'name': '한상차림', 'quantity': 1, 'unit_price': 12727, 'amount': 12727}],
+            category='식당', tax=1273, total=12727,
+        ))
+        raise AssertionError('부가세 반영 안 된 총액을 걸러내지 못함')
+    except ValueError as e:
+        assert '총액 불일치' in str(e)
+
+
 def test_assign_account_code_default_and_company():
     receipt = Receipt.model_validate(_make_receipt())
     assert assign_account_code(receipt, company='default') == '복리후생비'
@@ -154,6 +172,8 @@ if __name__ == '__main__':
     test_valid_receipt_passes()
     test_item_math_error_rejected()
     test_total_math_error_rejected()
+    test_total_with_tax_and_service_charge_passes()
+    test_total_ignoring_tax_is_rejected()
     test_assign_account_code_default_and_company()
     test_category_is_fixed_enum_not_free_text()
     test_every_company_covers_all_categories()
