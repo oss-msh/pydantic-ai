@@ -8,32 +8,32 @@
 
 <table>
 <tr>
-<td align="center"><b>기여자이름</b></td>
+<td align="center"><b>Pakkoc</b></td>
 <td align="center"><b>ruby-kim</b></td>
-<td align="center"><b>기여자이름</b></td>
+<td align="center"><b>SeunghooKim</b></td>
 </tr>
 
 <tr>
 <td align="center">
-<img src="https://github.com/<github username 입력>.png" width="150">
+<img src="https://github.com/Pakkoc.png" width="150">
 </td>
 <td align="center">
 <img src="https://github.com/ruby-kim.png" width="150">
 </td>
 <td align="center">
-<img src="https://github.com/<github username 입력>.png" width="150">
+<img src="https://github.com/SeunghooKim.png" width="150">
 </td>
 </tr>
 
 <tr>
 <td align="center">
-[github username](https://github.com/<github username 입력>)
+<a href="https://github.com/Pakkoc">Github</a>
 </td>
 <td align="center">
-[ruby-kim](https://github.com/ruby-kim)
+<a href="https://github.com/Pakkoc">Github</a>
 </td>
 <td align="center">
-[github username](https://github.com/<github username 입력>)
+<a href="https://github.com/SeunghooKim">Github</a>
 </td>
 </tr>
 
