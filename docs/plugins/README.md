@@ -9,7 +9,7 @@
 <table>
 <tr>
 <td align="center"><b>기여자이름</b></td>
-<td align="center"><b>기여자이름</b></td>
+<td align="center"><b>ruby-kim</b></td>
 <td align="center"><b>기여자이름</b></td>
 </tr>
 
@@ -18,7 +18,7 @@
 <img src="https://github.com/<github username 입력>.png" width="150">
 </td>
 <td align="center">
-<img src="https://github.com/<github username 입력>.png" width="150">
+<img src="https://github.com/ruby-kim.png" width="150">
 </td>
 <td align="center">
 <img src="https://github.com/<github username 입력>.png" width="150">
@@ -30,7 +30,7 @@
 [github username](https://github.com/<github username 입력>)
 </td>
 <td align="center">
-[github username](https://github.com/<github username 입력>)
+[ruby-kim](https://github.com/ruby-kim)
 </td>
 <td align="center">
 [github username](https://github.com/<github username 입력>)
@@ -42,7 +42,7 @@
 <a href="./sample_plugin.md">sample_plugin</a>
 </td>
 <td align="center">
-<a href="./본인플러그인.md">추후 작성</a>
+<a href="./receipt_agent.md">receipt_agent</a>
 </td>
 <td align="center">
 <a href="./본인플러그인.md">추후 작성</a>
